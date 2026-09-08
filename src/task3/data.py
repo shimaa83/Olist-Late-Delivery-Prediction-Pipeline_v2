@@ -1,5 +1,5 @@
 import sqlite3
-from typing import List, Optional
+
 import pandas as pd
 
 from src.task3.config import DB_PATH, MASTER_CSV_PATH
@@ -12,7 +12,7 @@ def get_db_connection(db_path=DB_PATH) -> sqlite3.Connection:
     return sqlite3.connect(db_path)
 
 
-def get_table_names(conn: sqlite3.Connection) -> List[str]:
+def get_table_names(conn: sqlite3.Connection) -> list[str]:
     """استرجاع أسماء كافة الجداول الموجودة في قاعدة البيانات."""
     query = "SELECT name FROM sqlite_master WHERE type='table';"
     tables = pd.read_sql_query(query, conn)["name"].tolist()
@@ -20,7 +20,7 @@ def get_table_names(conn: sqlite3.Connection) -> List[str]:
 
 
 def analyze_table(
-    conn: sqlite3.Connection, table_name: str, pk_cols: Optional[List[str]] = None
+    conn: sqlite3.Connection, table_name: str, pk_cols: list[str] | None = None
 ) -> None:
     """تحليل جدول معين وعرض الإحصائيات الخاصة به."""
     df = pd.read_sql_query(f'SELECT * FROM "{table_name}"', conn)

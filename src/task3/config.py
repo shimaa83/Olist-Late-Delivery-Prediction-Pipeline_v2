@@ -1,6 +1,5 @@
 from pathlib import Path
 
-
 MLFLOW_TRACKING_URI = "sqlite:///mlflow.db"
 # ==========================================
 # 1. المسارات الأساسية (Directories)

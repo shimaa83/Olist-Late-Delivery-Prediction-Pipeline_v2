@@ -5,7 +5,7 @@ import joblib
 from onnxmltools import convert_xgboost
 from onnxmltools.convert.common.data_types import FloatTensorType
 
-import src.task3.config as config
+from src.task3 import config
 
 logging.basicConfig(
     level=logging.INFO, format="%(asctime)s | %(levelname)-8s | %(message)s"
@@ -49,8 +49,8 @@ def convert_best_model_to_onnx():
         logger.info(f"تم حفظ نموذج ONNX بنجاح في: {onnx_output_path}")
         return onnx_output_path
     except Exception as e:
-        logger.error(f"فشل تحويل النموذج إلى ONNX: {str(e)}")
-        raise e
+        logger.error(f"فشل تحويل النموذج إلى ONNX: {e!s}")
+        raise
 
 
 if __name__ == "__main__":

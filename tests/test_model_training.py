@@ -1,7 +1,7 @@
 import numpy as np
 from scipy.sparse import csr_matrix
 
-import src.task3.config as config
+from src.task3 import config
 
 # افترض أن اسم ملفك الأصلي هو model_training.py (قم بتعديله حسب اسم ملفك)
 from src.task3.models import (

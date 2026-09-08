@@ -1,13 +1,13 @@
 import logging
 
-import yaml
-
 import mlflow
 import mlflow.sklearn
 import mlflow.xgboost
+import yaml
 from mlflow.tracking import MlflowClient
 
-import src.task3.config as config
+from src.task3 import config
+
 from .models import (
     build_logistic_regression,
     build_random_forest,

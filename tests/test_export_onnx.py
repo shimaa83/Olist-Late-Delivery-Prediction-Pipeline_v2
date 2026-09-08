@@ -1,10 +1,11 @@
 from pathlib import Path
+
 import joblib
 import numpy as np
 import pytest
 from xgboost import XGBClassifier
 
-import src.task3.config as config
+from src.task3 import config
 from src.task3.export_onnx import convert_best_model_to_onnx
 
 

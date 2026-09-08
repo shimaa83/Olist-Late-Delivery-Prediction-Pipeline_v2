@@ -5,7 +5,7 @@ from scipy.sparse import hstack
 from sklearn.impute import SimpleImputer
 from sklearn.preprocessing import OneHotEncoder, StandardScaler
 
-import src.task3.config as config
+from src.task3 import config
 
 
 def apply_feature_engineering(df: pd.DataFrame) -> pd.DataFrame:

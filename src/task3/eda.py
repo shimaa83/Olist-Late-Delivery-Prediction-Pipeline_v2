@@ -2,7 +2,7 @@ import numpy as np
 import pandas as pd
 
 # استيراد كافة المسارات والإعدادات من config.py
-import src.task3.config as config
+from src.task3 import config
 
 
 def load_dataset(file_path: config.Path = config.TRAIN_DATA_PATH) -> pd.DataFrame:

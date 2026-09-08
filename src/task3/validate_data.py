@@ -1,10 +1,10 @@
 import logging
 import sys
 
-import pandas as pd
 import great_expectations as gx
+import pandas as pd
 
-import src.task3.config as config
+from src.task3 import config
 
 logger = logging.getLogger("validate_data")
 

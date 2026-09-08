@@ -1,5 +1,4 @@
 import joblib
-import src.task3.config
 from sklearn.ensemble import RandomForestClassifier
 from sklearn.linear_model import LogisticRegression
 from sklearn.metrics import (
@@ -11,6 +10,8 @@ from sklearn.metrics import (
 )
 from sklearn.model_selection import RandomizedSearchCV
 from xgboost import XGBClassifier
+
+import src.task3.config
 
 
 def load_artifacts():

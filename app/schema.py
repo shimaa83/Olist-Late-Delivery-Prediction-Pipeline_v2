@@ -6,7 +6,6 @@ Pydantic models للـ API - المدخلات هنا هي البيانات "ال
 في features.py::apply_feature_engineering() + config.FEATURE_COLS.
 """
 
-from typing import List
 from pydantic import BaseModel, Field
 
 
@@ -49,11 +48,11 @@ class PredictionResult(BaseModel):
 
 
 class BatchPredictionRequest(BaseModel):
-    orders: List[OrderFeatures]
+    orders: list[OrderFeatures]
 
 
 class BatchPredictionResponse(BaseModel):
-    predictions: List[PredictionResult]
+    predictions: list[PredictionResult]
     total_count: int
     model_version: str
 

@@ -2,16 +2,15 @@ import logging
 import sys
 from contextlib import asynccontextmanager
 from pathlib import Path
-from typing import Any, Dict, List
+from typing import Any
 
+import joblib
+import numpy as np
 import onnxruntime as ort
 import pandas as pd
-import numpy as np
-import joblib
-from scipy.sparse import hstack, issparse
 from fastapi import FastAPI, HTTPException, status
+from scipy.sparse import hstack, issparse
 
-import src.task3.config as config
 from app.schema import (
     BatchPredictionRequest,
     BatchPredictionResponse,
@@ -20,6 +19,7 @@ from app.schema import (
     OrderFeatures,
     PredictionResult,
 )
+from src.task3 import config
 
 # إعداد logging
 logging.basicConfig(
@@ -32,7 +32,7 @@ MODEL_PATH = Path(config.BEST_MODEL_PATH)
 ARTIFACTS_DIR = Path(config.ARTIFACTS_DIR)
 
 # قاموس لحفظ الموديل والـ preprocessors
-model_assets: Dict[str, Any] = {}
+model_assets: dict[str, Any] = {}
 
 
 # ==================================================
@@ -88,8 +88,8 @@ async def lifespan(app: FastAPI):
 
         logger.info("✅ تم تحميل النموذج وكل الـ preprocessors بنجاح!")
 
-    except Exception as e:
-        logger.error(f"❌ فشل تحميل النموذج أو الـ preprocessors: {e}", exc_info=True)
+    except Exception:
+        logger.exception("❌ فشل تحميل النموذج أو الـ preprocessors:")
         model_assets["session"] = None
 
     yield
@@ -197,17 +197,17 @@ def preprocess_data(df: pd.DataFrame) -> np.ndarray:
     except HTTPException:
         raise
     except Exception as e:
-        logger.error(f"❌ خطأ في معالجة البيانات: {e}", exc_info=True)
+        logger.exception("❌ خطأ في معالجة البيانات:")
         raise HTTPException(
             status_code=status.HTTP_422_UNPROCESSABLE_CONTENT,
-            detail=f"خطأ في معالجة البيانات: {str(e)}",
+            detail=f"خطأ في معالجة البيانات: {e!s}",
         )
 
 
 # ==================================================
 # دالة التوقع الرئيسية
 # ==================================================
-def predict(df: pd.DataFrame) -> List[Dict[str, Any]]:
+def predict(df: pd.DataFrame) -> list[dict[str, Any]]:
     session = model_assets.get("session")
 
     if session is None:
@@ -227,7 +227,7 @@ def predict(df: pd.DataFrame) -> List[Dict[str, Any]]:
             input_name = input_names[0]
             input_data = {input_name: processed_data}
         else:
-            logger.error(f"❌ inputs متعددة: {input_names}")
+            logger.exception("❌ inputs متعددة: {input_names}")
             raise ValueError(f"Unexpected multiple inputs: {input_names}")
 
         output_names = model_assets.get("output_names", [])
@@ -264,10 +264,10 @@ def predict(df: pd.DataFrame) -> List[Dict[str, Any]]:
     except HTTPException:
         raise
     except Exception as e:
-        logger.error(f"❌ خطأ في التوقع: {e}", exc_info=True)
+        logger.exception("❌ خطأ في التوقع: ")
         raise HTTPException(
             status_code=status.HTTP_422_UNPROCESSABLE_CONTENT,
-            detail=f"خطأ في التوقع: {str(e)}",
+            detail=f"خطأ في التوقع: {e!s}",
         )
 
 

@@ -1,5 +1,6 @@
 import pandas as pd
-import src.task3.config as config
+
+from src.task3 import config
 
 
 def split_summary(df: pd.DataFrame, name: str) -> None:
