@@ -1,1 +1,1 @@
-[![CI/CD Pipeline](https://github.com/USERNAME/REPOSITORY/actions/workflows/ci-cd.yml/badge.svg)](https://github.com/USERNAME/REPOSITORY/actions)
+[![CI/CD Pipeline](https://github.com/shimaa83/Olist-Late-Delivery-Prediction-Pipeline_v2/actions/workflows/ci-cd.yml/badge.svg)](https://github.com/shimaa83/Olist-Late-Delivery-Prediction-Pipeline_v2/actions)
