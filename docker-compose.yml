@@ -1,0 +1,32 @@
+services:
+  # ==========================================
+  # خدمة الـ API (FastAPI + ONNX)
+  # ==========================================
+  api:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    image: olist-delay-api:latest
+    container_name: olist_api
+    restart: unless-stopped
+    environment:
+      API_HOST: 0.0.0.0
+      API_PORT: 8000
+      LOG_LEVEL: ${LOG_LEVEL:-INFO}
+    ports:
+      - "${API_PORT:-8000}:8000"
+    volumes:
+      # ✅ تخزين الـ artifacts والـ models - مربوطة بمجلدات على الجهاز نفسه
+      # عشان تفضل موجودة حتى لو الـ container اتشال، وتقدر تحدّثها من برا
+      - ./artifacts:/app/artifacts:ro
+      - ./models:/app/models:ro
+      - api_logs:/app/logs
+    healthcheck:
+      test: ["CMD", "python", "-c", "import urllib.request; urllib.request.urlopen('http://localhost:8000/health')"]
+      interval: 15s
+      timeout: 5s
+      start_period: 15s
+      retries: 5
+
+volumes:
+  api_logs:

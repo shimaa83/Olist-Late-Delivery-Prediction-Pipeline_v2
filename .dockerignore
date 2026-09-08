@@ -1,0 +1,44 @@
+# Python
+__pycache__/
+*.pyc
+*.pyo
+*.egg-info/
+.venv/
+venv/
+
+# Notebooks & experiments - ما ينفعش يدخلوا الصورة
+*.ipynb
+notebooks/
+.ipynb_checkpoints/
+
+# Training scripts (مش محتاجينهم في صورة الـ serving)
+src/task3/features.py
+src/task3/models.py
+src/task3/split_data.py
+src/task3/train_mlflow.py
+src/task3/validate_data.py
+src/task3/export_onnx.py
+
+# بيانات وملفات كبيرة - بتتوصل عن طريق volumes مش بتتنسخ للصورة
+data/
+mlruns/
+mlflow.db
+artifacts/
+models/
+logs/
+reports/
+
+# Git / CI / secrets
+.git/
+.gitignore
+.env
+.env.*
+!.env.example
+
+# Misc
+*.md
+tests/
+.pytest_cache/
+.mypy_cache/
+docker-compose.yml
+Dockerfile
