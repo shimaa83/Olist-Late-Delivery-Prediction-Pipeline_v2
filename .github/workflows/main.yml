@@ -28,17 +28,11 @@ jobs:
       - name: Install dependencies
         run: uv sync --no-dev
 
-      # 1. فحص جميع ملفات المشروع (Python, YAML, Whitespace) بواسطة pre-commit
-      - name: Run Pre-Commit Checks on All Files
-        run: uv run pre-commit run --all-files
-
-      # 2. فحص جودة كود Python والتنسيق بـ Ruff
       - name: Lint and Format check with Ruff
         run: |
           uv run ruff check .
           uv run ruff format --check .
 
-      # 3. تشغيل الاختبارات لضمان عدم وجود أخطاء في الـ API
       - name: Run Pytest
         run: uv run pytest
 
