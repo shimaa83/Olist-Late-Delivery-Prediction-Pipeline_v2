@@ -3,13 +3,15 @@ import sys
 from contextlib import asynccontextmanager
 from pathlib import Path
 from typing import Any
-
+from fastapi import HTTPException
 import joblib
 import numpy as np
 import onnxruntime as ort
 import pandas as pd
-from fastapi import FastAPI, HTTPException, status
+from fastapi import FastAPI, status
 from scipy.sparse import hstack, issparse
+from prometheus_client import Counter
+from prometheus_fastapi_instrumentator import Instrumentator
 
 from app.schema import (
     BatchPredictionRequest,
@@ -30,6 +32,13 @@ BASE_DIR = Path(__file__).resolve().parent.parent
 sys.path.append(str(BASE_DIR / "src"))
 MODEL_PATH = Path(config.BEST_MODEL_PATH)
 ARTIFACTS_DIR = Path(config.ARTIFACTS_DIR)
+
+# 🔥 Prometheus Counter لمتابعة توزيع التوقعات (Prediction Distribution / Drift)
+PREDICTION_COUNTER = Counter(
+    "model_predictions_total",
+    "Total model predictions grouped by output label",
+    ["prediction"],
+)
 
 # قاموس لحفظ الموديل والـ preprocessors
 model_assets: dict[str, Any] = {}
@@ -105,6 +114,9 @@ app = FastAPI(
     lifespan=lifespan,
 )
 
+# تفعيل تتبع متطلبات الخدمة تلقائياً (Latency, Requests Count, Errors)
+Instrumentator().instrument(app).expose(app)
+
 
 # ==================================================
 # Feature Engineering - نفس منطق features.py::apply_feature_engineering
@@ -163,7 +175,7 @@ def preprocess_data(df: pd.DataFrame) -> np.ndarray:
                 detail="الـ preprocessors غير محمّلة على السيرفر",
             )
 
-        # ✅ خطوة 1: Feature Engineering (نفس اللي حصل وقت التدريب)
+        # ✅ خطوة 1: Feature Engineering
         df = apply_feature_engineering(df)
 
         # ✅ خطوة 2: تأكد من وجود كل أعمدة FEATURE_COLS المطلوبة
@@ -176,15 +188,15 @@ def preprocess_data(df: pd.DataFrame) -> np.ndarray:
 
         df = df[config.FEATURE_COLS].copy()
 
-        # ✅ خطوة 3: Categorical -> Impute -> Encode (بنفس ترتيب categorical_features)
+        # ✅ خطوة 3: Categorical -> Impute -> Encode
         X_cat = cat_imputer.transform(df[categorical_features])
-        X_cat = cat_encoder.transform(X_cat)  # sparse matrix
+        X_cat = cat_encoder.transform(X_cat)
 
-        # ✅ خطوة 4: Numerical -> Impute -> Scale (بنفس ترتيب numerical_features)
+        # ✅ خطوة 4: Numerical -> Impute -> Scale
         X_num = num_imputer.transform(df[numerical_features])
         X_num = num_scaler.transform(X_num)
 
-        # ✅ خطوة 5: Stack بنفس ترتيب التدريب: numerical أولاً ثم categorical
+        # ✅ خطوة 5: Stack numerical أولاً ثم categorical
         X_final = hstack([X_num, X_cat])
         if issparse(X_final):
             X_final = X_final.toarray()
@@ -312,7 +324,20 @@ async def predict_single(order: OrderFeatures):
     """توقع لطلب واحد - بياخد البيانات الخام ويعمل feature engineering كامل"""
     df = pd.DataFrame([order.model_dump()])
     results = predict(df)
-    return results[0]
+    res = results[0]
+
+    # 1. زيادة عداد التوقعات في Prometheus
+    PREDICTION_COUNTER.labels(prediction=str(res["prediction"])).inc()
+
+    # 2. طباعة سجل لتقييم الـ Drift والتوصيل الفعلي لاحقاً
+    logger.info(f"EVAL_LOG | OrderInput: {order.model_dump_json()} | PredResult: {res}")
+
+    return res
+
+
+@app.get("/trigger-error")
+def trigger_error():
+    raise HTTPException(status_code=500, detail="Testing Grafana 500 Alert")
 
 
 @app.post("/predict/batch", response_model=BatchPredictionResponse, tags=["Inference"])
@@ -327,11 +352,15 @@ async def predict_batch(batch: BatchPredictionRequest):
     df = pd.DataFrame([order.model_dump() for order in batch.orders])
     results = predict(df)
 
+    # 1. زيادة عداد التوقعات لكل طلب داخل الـ Batch
+    for r in results:
+        PREDICTION_COUNTER.labels(prediction=str(r["prediction"])).inc()
+
+    # 2. طباعة سجل للـ Batch كامل للتقييم اللاحق
+    logger.info(f"EVAL_LOG | BatchSize: {len(results)} | PredResults: {results}")
+
     return BatchPredictionResponse(
         predictions=[PredictionResult(**r) for r in results],
         total_count=len(results),
         model_version=model_assets.get("model_version", "unknown"),
     )
-
-
-# تشغيل: uvicorn app.main:app --reload
