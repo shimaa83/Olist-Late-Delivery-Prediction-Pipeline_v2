@@ -3,15 +3,15 @@ import sys
 from contextlib import asynccontextmanager
 from pathlib import Path
 from typing import Any
-from fastapi import HTTPException
+
 import joblib
 import numpy as np
 import onnxruntime as ort
 import pandas as pd
-from fastapi import FastAPI, status
-from scipy.sparse import hstack, issparse
+from fastapi import FastAPI, HTTPException, status
 from prometheus_client import Counter
 from prometheus_fastapi_instrumentator import Instrumentator
+from scipy.sparse import hstack, issparse
 
 from app.schema import (
     BatchPredictionRequest,
